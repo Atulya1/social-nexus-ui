@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-
+import {
+    startOrchestration,
+    pollStatus
+} from './RagPipelineService';
 export default function ChatArea({ mode }) {
     const [input, setInput] = useState("");
     const [input2, setInput2] = useState("");
@@ -31,75 +34,54 @@ export default function ChatArea({ mode }) {
         setResponse("");
         setTopTweets([]);
 
+        // — your existing payload logic, untouched —
         let payload;
-        let endpoint;
-
         if (mode === 'twitter') {
             payload = {
+                mode: "twitter",
                 query: input,
                 index_name: selectedIndex,
                 similarity_threshold: 1.3,
                 document_count: 5,
                 temperature: 0.2
             };
-            endpoint = "http://localhost:8000/twitter/rag";
-        } else if (mode === 'youtube') {
-            let currentValid = isValidYouTubeUrl(youtubeURL);
-
+        } else {
+            const currentValid = isValidYouTubeUrl(youtubeURL);
             if (!currentValid) {
                 window.alert("Invalid Url");
                 setLoading(false);
                 return;
-            } else if (currentValid && savedYoutubeURL === "") { // it's the first url
-                setSavedYoutubeURL(youtubeURL); // save new URL
-                payload = {
-                    url: youtubeURL,
-                    question: input,
-                    similarity_threshold: 1.3,
-                    document_count: 100,
-                    temperature: 0.2
-                };
-                console.log(payload)
-            } else if (currentValid && savedYoutubeURL !== "" && savedYoutubeURL !== youtubeURL) { // it's a new url
-                setSavedYoutubeURL(youtubeURL); // save new URL
-                payload = {
-                    url: youtubeURL,
-                    question: input,
-                    similarity_threshold: 1.3,
-                    document_count: 100,
-                    temperature: 0.2
-                };
-                console.log(payload)
-            } else if (currentValid && savedYoutubeURL !== "" && savedYoutubeURL === youtubeURL) { // follow-up question
-                payload = {
-                    url: "",
-                    question: input,
-                    similarity_threshold: 1.3,
-                    document_count: 100,
-                    temperature: 0.2
-                };
-                console.log(payload)
             }
-            endpoint = "http://localhost:8000/youtube/rag";
+            if (currentValid && savedYoutubeURL === "") {
+                setSavedYoutubeURL(youtubeURL);
+                payload = { mode: "youtube", url: youtubeURL, query: input, similarity_threshold: 1.3, document_count: 100, temperature: 0.2 };
+            } else if (currentValid && savedYoutubeURL !== youtubeURL) {
+                setSavedYoutubeURL(youtubeURL);
+                payload = { mode: "youtube", url: youtubeURL, query: input, similarity_threshold: 1.3, document_count: 100, temperature: 0.2 };
+            } else {
+                payload = { mode: "youtube", url: youtubeURL, query: input, similarity_threshold: 1.3, document_count: 100, temperature: 0.2 };
+            }
         }
+        // — end of existing logic —
 
         try {
-            const res = await fetch(endpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            setResponse(data.answer || data.output?.result?.answer || "No response found.");
-            setTopTweets(data.top_tweets || []);
-            setInput2(input)
+            const instanceId = await startOrchestration(payload);
+            const finalOutput = await pollStatus(instanceId, status =>
+                console.log("status:", status)
+            );
+            // 3) Your original state updates
+            setResponse(finalOutput.answer || "No response found.");
+            setTopTweets(finalOutput.top_tweets || []);
+            setInput2(input);
             setInput("");
         } catch (err) {
+            console.error(err);
             setResponse("Error fetching insights.");
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="flex-1 bg-gray-50 flex flex-col items-center justify-end py-6 relative">
@@ -111,10 +93,10 @@ export default function ChatArea({ mode }) {
                         value={selectedIndex}
                         onChange={(e) => setSelectedIndex(e.target.value)}
                     >
-                        <option value="twitter-data-test">twitter-data-test</option>
-                        <option value="twitter-data-v1">twitter-data-v1</option>
-                        <option value="twitter-data-v2">twitter-data-v2</option>
-                        <option value="twitter-data-v3">twitter-data-v3</option>
+                        <option value="4">twitter-data-test</option>
+                        <option value="1">twitter-data-v1</option>
+                        <option value="2">twitter-data-v2</option>
+                        <option value="3">twitter-data-v3</option>
                     </select>
                 </div>
             )}
