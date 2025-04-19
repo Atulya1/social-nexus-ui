@@ -3,6 +3,10 @@ import {
     startOrchestration,
     pollStatus
 } from './RagPipelineService';
+
+import {SendHorizontal, Plus, Settings} from "lucide-react";
+
+
 export default function ChatArea({ mode }) {
     const [input, setInput] = useState("");
     const [input2, setInput2] = useState("");
@@ -11,7 +15,7 @@ export default function ChatArea({ mode }) {
     const [response, setResponse] = useState("");
     const [topTweets, setTopTweets] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [selectedIndex, setSelectedIndex] = useState("twitter-data-test");
+    const [selectedIndex, setSelectedIndex] = useState("1");
 
     useEffect(() => {
         setInput("");
@@ -84,26 +88,40 @@ export default function ChatArea({ mode }) {
 
 
     return (
-        <div className="flex-1 bg-gray-50 flex flex-col items-center justify-end py-6 relative">
+        <div className="flex-1 bg-gray-100 flex flex-col items-center justify-end py-6 relative">
             {mode === 'twitter' && (
                 <div className="absolute top-4 left-4">
-                    <div className="mb-1 font-semibold text-gray-700">Select Data Set</div>
-                    <select
-                        className="border border-gray-300 rounded-md p-2"
-                        value={selectedIndex}
-                        onChange={(e) => setSelectedIndex(e.target.value)}
-                    >
-                        <option value="4">twitter-data-test</option>
-                        <option value="1">twitter-data-v1</option>
-                        <option value="2">twitter-data-v2</option>
-                        <option value="3">twitter-data-v3</option>
-                    </select>
+                    <label className="block text-s font-bold text-black mb-2 tracking-wide uppercase">
+                        Select Data Set
+                    </label>
+                    <div className="relative w-56">
+                        <select
+                            className="block w-full px-4 py-2 bg-[#2f3e4d] text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 appearance-none cursor-pointer"
+                            value={selectedIndex}
+                            onChange={(e) => setSelectedIndex(e.target.value)}
+                        >
+                            <option value="4">twitter-data-test</option>
+                            <option value="1">twitter-data-v1</option>
+                            <option value="2">twitter-data-v2</option>
+                            <option value="3">twitter-data-v3</option>
+                            <Settings className="h-5 w-5 text-white" />
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
+                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             )}
 
+
             {response && (
-                <div className="w-full max-w-2xl px-4 flex-1 overflow-y-auto space-y-4">
-                    <div className="bg-gray-100 border border-gray-300 rounded-md p-4 shadow">
+                <div
+                    className={`w-full max-w-2xl px-4 overflow-y-auto space-y-4 ${
+                        mode === 'youtube' ? 'max-h-[70vh]' : 'max-h-[75vh]'
+                    }`}
+                >                <div className="bg-gray-100 border border-gray-300 rounded-md p-4 shadow">
                         <h3 className="text-lg font-semibold mb-2">{input2}</h3>
                         <p className="whitespace-pre-line text-sm text-gray-800">{response}</p>
                     </div>
@@ -142,7 +160,6 @@ export default function ChatArea({ mode }) {
                     )}
                 </div>
             )}
-
             <div className="w-full max-w-2xl px-4 mt-4 space-y-2">
                 {mode === 'youtube' && (
                     <input
@@ -165,7 +182,7 @@ export default function ChatArea({ mode }) {
                         onClick={handleSend}
                         className={`text-white px-4 rounded-r-md ${mode === 'youtube' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
-                        {loading ? 'Loading...' : mode === 'youtube' ? 'Send (YouTube)' : 'Send (Twitter)'}
+                        {loading ? 'Loading...' : mode === 'youtube' ? <SendHorizontal /> : <SendHorizontal />}
                     </button>
                 </div>
             </div>
