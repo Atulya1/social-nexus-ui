@@ -25,13 +25,8 @@
 // }
 export async function startOrchestration(payload) {
     const orchestrationUrl = process.env.REACT_APP_ORCHESTRATION_URL;
-    const orchestrationKey = process.env.REACT_APP_ORCHESTRATION_KEY;
 
-    const endpoint = orchestrationKey
-        ? `${orchestrationUrl}?code=${orchestrationKey}`
-        : orchestrationUrl;
-
-    const res = await fetch(endpoint, {
+    const res = await fetch(orchestrationUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -44,11 +39,8 @@ export async function startOrchestration(payload) {
 
 export async function pollStatus(instanceId, onUpdate) {
     const statusUrlBase = process.env.REACT_APP_STATUS_URL;
-    const statusKey = process.env.REACT_APP_STATUS_KEY;
 
-    const statusEndpoint = statusKey
-        ? `${statusUrlBase}/${instanceId}?code=${statusKey}`
-        : `${statusUrlBase}/${instanceId}`;
+    const statusEndpoint = `${statusUrlBase}/${instanceId}`
 
     while (true) {
         const res = await fetch(statusEndpoint);
